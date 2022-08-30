@@ -1,0 +1,2 @@
+ArducamSDK
+arducam_config_parser
