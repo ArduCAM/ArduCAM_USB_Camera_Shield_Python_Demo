@@ -13,6 +13,8 @@ chmod +x ./configure_udev_rules.sh
 ./configure_udev_rules.sh
 ```
 
+**Note: After configuring the udev rules, you need to replug the device or restart the PC, otherwise you still need `sudo` to run the program.**
+
 ### Windows
 
 1. [Download Driver](https://github.com/ArduCAM/ArduCAM_USB_Camera_Shield/releases/download/install_drivers/install_USB_Camera_Drivers.zip)
@@ -31,6 +33,12 @@ python3 -m pip install arducam_config_parser ArducamSDK
 python3 -m pip install opencv-python numpy
 ```
 **Note: For Jetson no need to install OpenCV dependencies**
+
+## Download Code
+```shell
+git clone https://github.com/ArduCAM/ArduCAM_USB_Camera_Shield_Python_Demo.git
+cd ArduCAM_USB_Camera_Shield_Python_Demo
+```
 
 ## Run the Demo
 ```shell
