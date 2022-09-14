@@ -69,14 +69,14 @@ class ArducamCamera(object):
 
         if ret != 0:
             self.running_ = False
-            raise RuntimeError("Error beginning capture, Error : {}".format(ErrorCode_toString(ret)))
+            raise RuntimeError("Error beginning capture, Error : {}".format(GetErrorString(ret)))
 
-        print("Capture began, Error :", ErrorCode_toString(ret))
+        print("Capture began, Error : {}".format(GetErrorString(ret)))
         
         while self.running_:
             ret = ArducamSDK.Py_ArduCam_captureImage(self.handle)
             if ret > 255:
-                print("Error capture image, Error :", ErrorCode_toString(ret))
+                print("Error capture image, Error : {}".format(GetErrorString(ret)))
                 if ret == ArducamSDK.USB_CAMERA_USB_TASK_ERROR:
                     break
             elif ret > 0:

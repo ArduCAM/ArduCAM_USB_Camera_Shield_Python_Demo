@@ -3,40 +3,38 @@ import arducam_config_parser
 import time
 
 ErrorCode_Map = {
-    "0x0000": "USB_CAMERA_NO_ERROR",
-    "0xFF01": "USB_CAMERA_USB_CREATE_ERROR",
-    "0xFF02": "USB_CAMERA_USB_SET_CONTEXT_ERROR",
-    "0xFF03": "USB_CAMERA_VR_COMMAND_ERROR",
-    "0xFF04": "USB_CAMERA_USB_VERSION_ERROR",
-    "0xFF05": "USB_CAMERA_BUFFER_ERROR",
-    "0xFF06": "USB_CAMERA_NOT_FOUND_DEVICE_ERROR",
-    "0xFF0B": "USB_CAMERA_I2C_BIT_ERROR",
-    "0xFF0C": "USB_CAMERA_I2C_NACK_ERROR",
-    "0xFF0D": "USB_CAMERA_I2C_TIMEOUT",
-    "0xFF20": "USB_CAMERA_USB_TASK_ERROR",
-    "0xFF21": "USB_CAMERA_DATA_OVERFLOW_ERROR",
-    "0xFF22": "USB_CAMERA_DATA_LACK_ERROR",
-    "0xFF23": "USB_CAMERA_FIFO_FULL_ERROR",
-    "0xFF24": "USB_CAMERA_DATA_LEN_ERROR",
-    "0xFF25": "USB_CAMERA_FRAME_INDEX_ERROR",
-    "0xFF26": "USB_CAMERA_USB_TIMEOUT_ERROR",
-    "0xFF30": "USB_CAMERA_READ_EMPTY_ERROR",
-    "0xFF31": "USB_CAMERA_DEL_EMPTY_ERROR",
-    "0xFF51": "USB_CAMERA_SIZE_EXCEED_ERROR",
-    "0xFF61": "USB_USERDATA_ADDR_ERROR",
-    "0xFF62": "USB_USERDATA_LEN_ERROR",
-    "0xFF71": "USB_BOARD_FW_VERSION_NOT_SUPPORT_ERROR"
+    0x0000: "USB_CAMERA_NO_ERROR",
+    0xFF01: "USB_CAMERA_USB_CREATE_ERROR",
+    0xFF02: "USB_CAMERA_USB_SET_CONTEXT_ERROR",
+    0xFF03: "USB_CAMERA_VR_COMMAND_ERROR",
+    0xFF04: "USB_CAMERA_USB_VERSION_ERROR",
+    0xFF05: "USB_CAMERA_BUFFER_ERROR",
+    0xFF06: "USB_CAMERA_NOT_FOUND_DEVICE_ERROR",
+    0xFF0B: "USB_CAMERA_I2C_BIT_ERROR",
+    0xFF0C: "USB_CAMERA_I2C_NACK_ERROR",
+    0xFF0D: "USB_CAMERA_I2C_TIMEOUT",
+    0xFF20: "USB_CAMERA_USB_TASK_ERROR",
+    0xFF21: "USB_CAMERA_DATA_OVERFLOW_ERROR",
+    0xFF22: "USB_CAMERA_DATA_LACK_ERROR",
+    0xFF23: "USB_CAMERA_FIFO_FULL_ERROR",
+    0xFF24: "USB_CAMERA_DATA_LEN_ERROR",
+    0xFF25: "USB_CAMERA_FRAME_INDEX_ERROR",
+    0xFF26: "USB_CAMERA_USB_TIMEOUT_ERROR",
+    0xFF30: "USB_CAMERA_READ_EMPTY_ERROR",
+    0xFF31: "USB_CAMERA_DEL_EMPTY_ERROR",
+    0xFF51: "USB_CAMERA_SIZE_EXCEED_ERROR",
+    0xFF61: "USB_USERDATA_ADDR_ERROR",
+    0xFF62: "USB_USERDATA_LEN_ERROR",
+    0xFF71: "USB_BOARD_FW_VERSION_NOT_SUPPORT_ERROR"
 }
+
+def GetErrorString(ErrorCode):
+    return ErrorCode_Map[ErrorCode]
 
 def configBoard(handle, config):
     ArducamSDK.Py_ArduCam_setboardConfig(handle, config.params[0],
                                          config.params[1], config.params[2], config.params[3],
-                                         config.params[4:config.params_length])
-
-def ErrorCode_toString(ErrorCode):
-    hexCode = "0x{:04X}".format(ErrorCode)
-    return ErrorCode_Map[hexCode]
-
+                                         config.params[4:config.params_length])                                  
 
 def camera_initFromFile(fileName, index):
     # load config file
@@ -100,5 +98,5 @@ def camera_initFromFile(fileName, index):
 
         return (True, handle, rtn_cfg, color_mode)
 
-    print("open fail, Error :", ErrorCode_toString(ret))
+    print("open fail, Error : {}".format(GetErrorString(ret)))
     return (False, handle, rtn_cfg, color_mode)
