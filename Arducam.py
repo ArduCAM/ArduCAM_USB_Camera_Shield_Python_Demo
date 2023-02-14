@@ -119,3 +119,66 @@ class ArducamCamera(object):
 
         print(usb_info)
 
+    def getCamInformation(self):
+        self.version = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 00)[1]
+        self.year = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 5)[1]
+        self.mouth = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 6)[1]
+        self.day = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 7)[1]
+        cpldVersion = "V{:d}.{:d}\t20{:0>2d}/{:0>2d}/{:0>2d}".format(self.version >> 4, self.version & 0x0F, self.year,
+                                                                     self.mouth, self.day)
+        return cpldVersion
+
+    def getMipiDataInfo(self):
+        mipiData = {"mipiDataID": "",
+                    "mipiDataRow": "",
+                    "mipiDataCol": "",
+                    "mipiDataClk": "",
+                    "mipiWordCount": "",
+                    "mFramerateValue": ""}
+        self.getCamInformation()
+        cpld_version = self.version & 0xF0
+        date = (self.year * 1000 + self.mouth * 100 + self.day)
+        if cpld_version not in [0x20, 0x30]:
+            return None
+        if cpld_version == 0x20 and date < (19 * 1000 + 7 * 100 + 8):
+            return None
+        elif cpld_version == 0x30 and date < (19 * 1000 + 3 * 100 + 22):
+            return None
+
+        mipiDataID = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 0x1E)[1]
+        mipiData["mipiDataID"] = hex(mipiDataID)
+
+        rowMSB = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 0x21)[1]
+        rowLSB = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 0x22)[1]
+        mipiDataRow = ((rowMSB & 0xFF) << 8) | (rowLSB & 0xFF)
+        mipiData["mipiDataRow"] = str(mipiDataRow)
+
+        colMSB = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 0x1F)[1]
+        colLSB = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 0x20)[1]
+        mipiDataCol = ((colMSB & 0xFF) << 8) | (colLSB & 0xFF)
+        mipiData["mipiDataCol"] = str(mipiDataCol)
+
+        # after 2020/06/22
+        if cpld_version == 0x20 and date < (20 * 1000 + 6 * 100 + 22):
+            return mipiData
+        elif cpld_version == 0x30 and date < (20 * 1000 + 6 * 100 + 22):
+            return mipiData
+
+        mipiDataClk = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 0x27)[1]
+        mipiData["mipiDataClk"] = str(mipiDataClk)
+
+        if (cpld_version == 0x30 and date >= (21 * 1000 + 3 * 100 + 1)) or (
+                cpld_version == 0x20 and date >= (21 * 1000 + 9 * 100 + 6)):
+            wordCountMSB = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 0x25)[1]
+            wordCountLSB = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 0x26)[1]
+            mipiWordCount = ((wordCountMSB & 0xFF) << 8) | (wordCountLSB & 0xFF)
+            mipiData["mipiWordCount"] = str(mipiWordCount)
+
+        if date >= (21 * 1000 + 6 * 100 + 22):
+            fpsMSB = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 0x2A)[1]
+            fpsLSB = ArducamSDK.Py_ArduCam_readReg_8_8(self.handle, 0x46, 0x2B)[1]
+            fps = (fpsMSB << 8 | fpsLSB) / 4.0
+            fpsResult = "{:.1f}".format(fps)
+            mipiData["mFramerateValue"] = fpsResult
+        return mipiData
+        
