@@ -55,3 +55,17 @@ python3 ArduCam_Demo.py -v --preview-width 1280 -f IMX477/4032x3040/IMX477_2Lane
 ```
 
 **Note: Configuration files can be found here: [ArduCAM_USB_Camera_Shield](https://github.com/ArduCAM/ArduCAM_USB_Camera_Shield/tree/master/Config)**
+
+## Troubleshooting
+
+When using the camera under **Linux**, there may be `Error beginning capture, rtn_val = 65312`
+
+![error_65312](resources/images/error/error_65312.png)
+
+This error may be caused by insufficient buffer of usbfs. You can solve this problem by increasing usbfs_memory_mb,
+
+Example:
+Set usbfs_memory_mb to 32 (default 16)
+```
+sudo sh -c 'echo 32 > /sys/module/usbcore/parameters/usbfs_memory_mb'
+```
