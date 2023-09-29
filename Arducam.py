@@ -17,12 +17,19 @@ class ArducamCamera(object):
 
         return self.isOpened
 
-    def start(self):
+    def start(self, mode = 'CONTINUOUS_MODE'):
         if not self.isOpened:
             raise RuntimeError("The camera has not been opened.")
         
+        self.mode = mode
+
         self.running_ = True
-        ArducamSDK.Py_ArduCam_setMode(self.handle, ArducamSDK.CONTINUOUS_MODE)
+
+        if self.mode == 'CONTINUOUS_MODE':
+            ArducamSDK.Py_ArduCam_setMode(self.handle, ArducamSDK.CONTINUOUS_MODE)
+        elif self.mode == 'EXTERNAL_TRIGGER_MODE':
+            ArducamSDK.Py_ArduCam_setMode(self.handle, ArducamSDK.EXTERNAL_TRIGGER_MODE)
+
         self.capture_thread_ = threading.Thread(target=self.capture_thread)
         self.capture_thread_.daemon = True
         self.capture_thread_.start()
@@ -31,20 +38,41 @@ class ArducamCamera(object):
         if not self.running_:
             raise RuntimeError("The camera is not running.")
 
-        if ArducamSDK.Py_ArduCam_availableImage(self.handle) <= 0:
-            with self.signal_:
-                self.signal_.wait(timeout/1000.0)
+        if self.mode == 'CONTINUOUS_MODE':
 
-        if ArducamSDK.Py_ArduCam_availableImage(self.handle) <= 0:
-            return (False, None, None)
+            if ArducamSDK.Py_ArduCam_availableImage(self.handle) <= 0:
+                with self.signal_:
+                    self.signal_.wait(timeout/1000.0)
 
-        ret, data, cfg = ArducamSDK.Py_ArduCam_readImage(self.handle)
-        ArducamSDK.Py_ArduCam_del(self.handle)
-        size = cfg['u32Size']
-        if ret != 0 or size == 0:
-            return (False, data, cfg)
-    
-        return (True, data, cfg)
+            if ArducamSDK.Py_ArduCam_availableImage(self.handle) <= 0:
+                return (False, None, None)
+
+            ret, data, cfg = ArducamSDK.Py_ArduCam_readImage(self.handle)
+            ArducamSDK.Py_ArduCam_del(self.handle)
+            size = cfg['u32Size']
+            if ret != 0 or size == 0:
+                return (False, data, cfg)
+        
+            return (True, data, cfg)
+        
+        elif self.mode == 'EXTERNAL_TRIGGER_MODE':
+
+            if ArducamSDK.Py_ArduCam_isFrameReady(self.handle) <= 0:
+                with self.signal_:
+                    self.signal_.wait(timeout/1000.0)
+
+            if ArducamSDK.Py_ArduCam_isFrameReady(self.handle) <= 0:
+                return (False, None, None)
+
+            ret, data, cfg = ArducamSDK.Py_ArduCam_getSingleFrame(self.handle)
+            if (not cfg):
+                return (False, None, None)
+            size = cfg['u32Size']
+            if ret != 0 or size == 0:
+                return (False, data, cfg)
+        
+            return (True, data, cfg)
+        
 
     def stop(self):
         if not self.running_:
@@ -65,26 +93,28 @@ class ArducamCamera(object):
 
 
     def capture_thread(self):
-        ret = ArducamSDK.Py_ArduCam_beginCaptureImage(self.handle)
 
-        if ret != 0:
-            self.running_ = False
-            raise RuntimeError("Error beginning capture, Error : {}".format(GetErrorString(ret)))
+        if self.mode == 'CONTINUOUS_MODE':
+            ret = ArducamSDK.Py_ArduCam_beginCaptureImage(self.handle)
 
-        print("Capture began, Error : {}".format(GetErrorString(ret)))
-        
-        while self.running_:
-            ret = ArducamSDK.Py_ArduCam_captureImage(self.handle)
-            if ret > 255:
-                print("Error capture image, Error : {}".format(GetErrorString(ret)))
-                if ret == ArducamSDK.USB_CAMERA_USB_TASK_ERROR:
-                    break
-            elif ret > 0:
-                with self.signal_:
-                    self.signal_.notify()
+            if ret != 0:
+                self.running_ = False
+                raise RuntimeError("Error beginning capture, Error : {}".format(GetErrorString(ret)))
+
+            print("Capture began, Error : {}".format(GetErrorString(ret)))
             
-        self.running_ = False
-        ArducamSDK.Py_ArduCam_endCaptureImage(self.handle)
+            while self.running_:
+                ret = ArducamSDK.Py_ArduCam_captureImage(self.handle)
+                if ret > 255:
+                    print("Error capture image, Error : {}".format(GetErrorString(ret)))
+                    if ret == ArducamSDK.USB_CAMERA_USB_TASK_ERROR:
+                        break
+                elif ret > 0:
+                    with self.signal_:
+                        self.signal_.notify()
+                
+            self.running_ = False
+            ArducamSDK.Py_ArduCam_endCaptureImage(self.handle)
 
     def setCtrl(self, func_name, val):
         return ArducamSDK.Py_ArduCam_setCtrl(self.handle, func_name, val)
@@ -181,4 +211,3 @@ class ArducamCamera(object):
             fpsResult = "{:.1f}".format(fps)
             mipiData["mFramerateValue"] = fpsResult
         return mipiData
-        

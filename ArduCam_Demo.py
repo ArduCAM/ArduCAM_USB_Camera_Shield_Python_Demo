@@ -53,7 +53,7 @@ if __name__ == "__main__":
     if verbose:
         camera.dumpDeviceInfo()
 
-    camera.start()
+    camera.start(mode = 'EXTERNAL_TRIGGER_MODE')
     # camera.setCtrl("setFramerate", 2)
     # camera.setCtrl("setExposureTime", 20000)
     # camera.setCtrl("setAnalogueGain", 800)
