@@ -58,10 +58,6 @@ class ArducamCamera(object):
         elif self.mode == 'EXTERNAL_TRIGGER_MODE':
 
             if ArducamSDK.Py_ArduCam_isFrameReady(self.handle) <= 0:
-                with self.signal_:
-                    self.signal_.wait(timeout/1000.0)
-
-            if ArducamSDK.Py_ArduCam_isFrameReady(self.handle) <= 0:
                 return (False, None, None)
 
             ret, data, cfg = ArducamSDK.Py_ArduCam_getSingleFrame(self.handle)
@@ -211,3 +207,4 @@ class ArducamCamera(object):
             fpsResult = "{:.1f}".format(fps)
             mipiData["mFramerateValue"] = fpsResult
         return mipiData
+        
