@@ -29,8 +29,8 @@ def RGB565ToMat(data,Width,Height):
     arr = 0xFF000000 + ((arr & 0xF800) << 8) + ((arr & 0x07E0) << 5) + ((arr & 0x001F) << 3)
 
     arr.dtype = np.uint8
-    iamge = arr.reshape(Height,Width,4)
-    return cv2.flip(iamge,0)
+    image = arr.reshape(Height,Width,4)
+    return cv2.flip(image,0)
 
 def dBytesToMat(data,bitWidth,Width,Height):
     arr = np.frombuffer(data,dtype=np.uint16)
@@ -59,7 +59,7 @@ def convert_color(image,color_mode):
         image = cv2.cvtColor(image,COLOR_BayerGB2BGR)
     if color_mode == 3:
         image = cv2.cvtColor(image,COLOR_BayerBG2BGR)
-    if color_mode < 0 and color_mode > 3:
+    if color_mode < 0 or color_mode > 3:
         image = cv2.cvtColor(image,COLOR_BayerGB2BGR)
     return image
 def convert_image(data,cfg,color_mode):
